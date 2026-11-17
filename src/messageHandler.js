@@ -29,7 +29,7 @@ function markOnce(id, now = Date.now()) {
 export async function handleMessage(sock, message) {
   const jid = message?.key?.remoteJid;
   if (typeof jid !== 'string' || !jid.endsWith('@g.us')) return;
-  if (!message?.message || message.key?.fromMe === true || isStale(message)) return;
+  if (!message?.message || isStale(message)) return;
   if (message.key?.id && !markOnce(`${jid}:${message.key.id}`)) return;
 
   const rawText = extractText(message.message);
@@ -44,6 +44,10 @@ export async function handleMessage(sock, message) {
     else if (command.type === 'mode') await setGroupMode(jid, command.mode);
     return;
   }
+
+  // Ignore ordinary messages sent by the linked bot account, but allow its
+  // verified owner-only group commands above.
+  if (message.key?.fromMe === true) return;
 
   // A non-owner using a secret-looking command never receives a response.
   if (/^(?:💜طك|🍃شلع|\*(?:كتابة|تفكيك|عكس|أعلام))$/.test(rawText.trim())) {
