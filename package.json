@@ -1,0 +1,17 @@
+{
+  "name": "contest-whatsapp-bot-euizhost",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Owner-controlled WhatsApp contest bot using Baileys pairing code",
+  "engines": { "node": ">=20.0.0" },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test",
+    "check": "node --check src/index.js && node --check src/connection.js && node --check src/messageHandler.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "7.0.0-rc14",
+    "pino": "9.7.0"
+  }
+}
