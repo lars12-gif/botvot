@@ -1,15 +1,16 @@
 import makeWASocket, {
   Browsers,
   DisconnectReason,
-  useMultiFileAuthState
+  initAuthCreds,
+  makeCacheableSignalKeyStore
 } from '@whiskeysockets/baileys';
 import pino from 'pino';
-import fs from 'node:fs/promises';
 import { config } from './config.js';
 import { normalizePhoneJid } from './utils.js';
 
 const logger = pino({ level: config.logLevel, redact: ['*.key', '*.auth', '*.creds', '*.noiseKey', '*.signedIdentityKey'] });
 let socket = null;
+let inMemoryAuthState = null;
 let generation = 0;
 let reconnectTimer = null;
 let reconnectAttempt = 0;
@@ -90,7 +91,36 @@ export async function startSocket(onOpen) {
     stopping = false;
     clearReconnectTimer();
     const currentGeneration = ++generation;
-    const { state, saveCreds } = await useMultiFileAuthState(config.authDir);
+    // Keep all WhatsApp credentials and Signal keys in memory only.
+    // A process restart therefore requires pairing again, but no auth files
+    // or history/session files are written to the hosting filesystem.
+    if (!inMemoryAuthState) {
+      const keyData = new Map();
+      const keyStore = {
+        get: async (type, ids) => {
+          const result = {};
+          for (const id of ids) {
+            const value = keyData.get(`${type}:${id}`);
+            if (value !== undefined) result[id] = value;
+          }
+          return result;
+        },
+        set: async data => {
+          for (const [type, entries] of Object.entries(data)) {
+            for (const [id, value] of Object.entries(entries ?? {})) {
+              const key = `${type}:${id}`;
+              if (value == null) keyData.delete(key);
+              else keyData.set(key, value);
+            }
+          }
+        }
+      };
+      inMemoryAuthState = {
+        creds: initAuthCreds(),
+        keys: makeCacheableSignalKeyStore(keyStore, logger)
+      };
+    }
+    const state = inMemoryAuthState;
     const sock = makeWASocket({
       auth: state,
       browser: Browsers.windows('Chrome'),
@@ -103,7 +133,8 @@ export async function startSocket(onOpen) {
       defaultQueryTimeoutMs: 30000
     });
     socket = sock;
-    sock.ev.on('creds.update', saveCreds);
+    // Apply credential updates in memory only; never write them to disk.
+    sock.ev.on('creds.update', update => Object.assign(state.creds, update));
 
     sock.ev.on('connection.update', async update => {
       if (currentGeneration !== generation || socket !== sock) return;
@@ -154,5 +185,4 @@ export async function stopSocket() {
   if (current) {
     try { current.end?.(new Error('Process shutdown')); } catch {}
   }
-  await fs.mkdir(config.authDir, { recursive: true, mode: 0o700 });
 }
