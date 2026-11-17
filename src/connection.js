@@ -40,7 +40,8 @@ function scheduleReconnect(reason, delay) {
     reconnectTimer = null;
     void startSocket();
   }, waitMs);
-  reconnectTimer.unref?.();
+  // Keep this timer referenced: after Baileys closes the WebSocket (515),
+  // it may be the only active handle keeping Node.js alive until reconnect.
 }
 
 async function verifyLinkedAccount(state) {
