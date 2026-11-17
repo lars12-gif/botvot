@@ -1,0 +1,10 @@
+{
+  "120363000000000001@g.us": {
+    "enabled": true,
+    "mode": "writing"
+  },
+  "120363000000000002@g.us": {
+    "enabled": false,
+    "mode": "flags"
+  }
+}
