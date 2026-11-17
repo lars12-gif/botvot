@@ -53,7 +53,7 @@ test('only owner commands are recognized and map to internal modes', () => {
   assert.equal(getOwnerCommand(msg(A, MEMBER, '💜طك')), null);
 });
 
-test('groups have independent activation and mode state and persist as JSON', async () => {
+test('groups have independent activation and mode state in memory', async () => {
   await initStorage();
   await setGroupEnabled(A, true);
   await setGroupMode(A, 'writing');
