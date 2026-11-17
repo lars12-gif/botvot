@@ -28,9 +28,6 @@ export const config = Object.freeze({
   // Single source of truth for the only account allowed to control the bot.
   ownerPhone: '+15879975734',
   ownerDigits: '15879975734',
-  dataDir: resolveFromRoot(process.env.DATA_DIR, './data'),
-  authDir: resolveFromRoot(process.env.AUTH_DIR, './auth'),
-  groupsFile: resolveFromRoot(process.env.DATA_DIR, './data') + path.sep + 'groups.json',
   flagsFile: path.join(rootDir, 'data', 'flags-ar.json'),
   logLevel: process.env.LOG_LEVEL || 'info',
   pairingCodeToConsole: boolEnv('PAIRING_CODE_TO_CONSOLE', true),
