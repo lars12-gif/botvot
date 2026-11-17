@@ -26,7 +26,7 @@ export function normalizePhoneJid(jid) {
 
 export function getVerifiedSenderDigits(message) {
   const key = message?.key;
-  if (!key || key.fromMe === true) return null;
+  if (!key) return null;
   // Baileys may expose PN JIDs directly or a LID plus a server-provided PN alt.
   // We accept only a syntactically valid PN JID; LID-only messages fail closed.
   const candidates = [key.participantAlt, key.participant, message.participantAlt, message.participant];
