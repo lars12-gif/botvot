@@ -1,5 +1,5 @@
 import { config } from './config.js';
-import { getVerifiedSenderDigits } from './utils.js';
+import { getVerifiedSenderDigits, extractText } from './utils.js';
 
 export function isOwnerMessage(message) {
   const digits = getVerifiedSenderDigits(message);
@@ -8,7 +8,7 @@ export function isOwnerMessage(message) {
 
 export function getOwnerCommand(message) {
   if (!isOwnerMessage(message)) return null;
-  const text = message?.message?.conversation ?? message?.message?.extendedTextMessage?.text;
+  const text = extractText(message?.message);
   if (typeof text !== 'string') return null;
   const command = text.trim();
   const controls = new Map([
